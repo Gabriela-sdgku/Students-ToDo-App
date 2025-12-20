@@ -89,7 +89,6 @@ struct ContentView: View {
                 return
             }
         }
-        
         // show mock data for dev purposes
         taskGroups = TaskGroup.sampleData
     }
