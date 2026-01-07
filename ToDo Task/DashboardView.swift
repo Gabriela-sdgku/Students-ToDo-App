@@ -22,6 +22,7 @@ struct DashboardView: View {
                         NavigationLink(value: group) {
                             Label(group.title, systemImage: group.symbolName)
                         }
+                        .accessibilityIdentifier("groupRow_\(group.title)")
                     }
                 
             }
@@ -37,11 +38,13 @@ struct DashboardView: View {
                             Text("Home")
                         }
                     }
+                    .accessibilityIdentifier("backToHomeButton")
                 }
                 ToolbarItem(placement: .primaryAction) {
                     Button { isShowingAddGroup = true } label : {
                         Image(systemName: "plus")
                     }
+                    .accessibilityIdentifier("addGroupButton")
                 }
             }
         } detail: {

@@ -14,27 +14,49 @@ struct ContentView: View {
     @AppStorage("isDarkMode") private var isDarkMode = false
     let saveKey = "savedProfiles"
     @State private var path = NavigationPath()
-    let columns = [GridItem(.adaptive(minimum: 150))]
+    
+    let columns = [
+        GridItem(.flexible(), spacing: 20),
+        GridItem(.flexible(), spacing: 20)
+    ]
     
     var body: some View {
         NavigationStack(path: $path) {
-            ScrollView {
-                VStack {
-                    Text("Select the working profile")
-                        .font(.largeTitle.bold())
-                    LazyVGrid(columns: columns, spacing: 20){
-                        ForEach($profiles) { $profile in
-                            NavigationLink(value: profile ){
-                                VStack {
-                                    Image(profile.profileImage)
-                                        .resizable()
-                                        .scaledToFit()
-                                        .frame(width: 80, height: 80)
-                                        .clipShape(.circle)
-                                    Text(profile.name)
+            ZStack {
+                LinearGradient(
+                    gradient: Gradient(colors: [Color.blue.opacity(0.1), Color.purple.opacity(0.05)]),
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+                .ignoresSafeArea()
+
+                ScrollView {
+                    VStack(spacing: 40) {
+                        
+                        // 2. Header Section
+                        VStack(spacing: 10) {
+                            Text("Welcome Back")
+                                .font(.subheadline)
+                                .textCase(.uppercase)
+                                .foregroundColor(.secondary)
+                                .padding(.top, 40)
+                            
+                            Text("Who is working today?")
+                                .font(.system(size: 28, weight: .bold, design: .rounded))
+                                .multilineTextAlignment(.center)
+                                .accessibilityIdentifier("whoisworking_text")
+                        }
+
+                        LazyVGrid(columns: columns, spacing: 25) {
+                            ForEach($profiles) { $profile in
+                                NavigationLink(value: profile) {
+                                    ProfileCardView(profile: profile)
                                 }
+                                .buttonStyle(PlainButtonStyle())
+                                .accessibilityIdentifier("profileCard_\(profile.name)")
                             }
                         }
+                        .padding(.horizontal)
                     }
                 }
             }
@@ -45,7 +67,6 @@ struct ContentView: View {
                     DashboardView(profile: $profiles[index])
                         .navigationBarBackButtonHidden(true)
                 }
-                
             }
         }
         .onAppear {
@@ -62,7 +83,6 @@ struct ContentView: View {
             }
         }
         .preferredColorScheme(isDarkMode ? .dark : .light)
-
     }
     
     func saveData() {
@@ -80,5 +100,35 @@ struct ContentView: View {
         }
         // show mock data for dev purposes
         profiles = Profile.sample
+    }
+}
+
+// 4. Extracted Subview for cleaner code and better design
+struct ProfileCardView: View {
+    let profile: Profile
+    
+    var body: some View {
+        VStack(spacing: 15) {
+            Image(profile.profileImage)
+                .resizable()
+                .scaledToFit()
+                .frame(width: 90, height: 90)
+                .clipShape(Circle())
+                // Add a border ring to pop the image
+                .overlay(Circle().stroke(Color.accentColor.opacity(0.3), lineWidth: 3))
+                .shadow(radius: 5)
+            
+            Text(profile.name)
+                .font(.headline)
+                .fontWeight(.semibold)
+                .foregroundColor(.primary)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 30)
+        .background(
+            RoundedRectangle(cornerRadius: 20)
+                .fill(Color(UIColor.secondarySystemGroupedBackground))
+                .shadow(color: Color.black.opacity(0.1), radius: 8, x: 0, y: 4)
+        )
     }
 }

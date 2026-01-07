@@ -18,13 +18,13 @@ struct NewGroupView: View {
             Form {
                 Section("Group Name") {
                     TextField("Insert the name of your group", text: $groupName)
+                        .accessibilityIdentifier("newGroupNameField")
                 }
                 
                 Section("Select Icon") {
                     LazyVGrid(columns: [GridItem(.adaptive(minimum: 40))]) {
-                        ForEach(icons, id: \.self) {icon in
+                        ForEach(icons, id: \.self) { icon in
                             Image(systemName: icon)
-                            // ADD UI DESIGN
                                 .frame(width: 40, height: 40)
                                 .background(selectedIcon == icon ? Color.cyan.opacity(0.2) : Color.clear)
                                 .foregroundStyle(selectedIcon == icon ? Color.cyan : Color.gray)
@@ -32,6 +32,7 @@ struct NewGroupView: View {
                                 .onTapGesture {
                                     selectedIcon = icon
                                 }
+                                .accessibilityIdentifier("iconSelect_\(icon)")
                         }
                     }
                     .padding(.vertical)
@@ -41,6 +42,7 @@ struct NewGroupView: View {
             .toolbar{
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") { dismiss() }
+                        .accessibilityIdentifier("cancelGroupButton")
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Save") {
@@ -48,6 +50,7 @@ struct NewGroupView: View {
                         onSave(newGroup)
                         dismiss()
                     }
+                    .accessibilityIdentifier("saveGroupButton")
                 }
             }
         }
