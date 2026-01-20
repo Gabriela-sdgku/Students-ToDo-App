@@ -18,13 +18,12 @@ struct DashboardView: View {
     var body: some View {
         NavigationSplitView(columnVisibility: $columnVisibility) {
             List(selection: $selectedGroup) {
-                    ForEach(profile.groups) { group in
-                        NavigationLink(value: group) {
-                            Label(group.title, systemImage: group.symbolName)
-                        }
-                        .accessibilityIdentifier("groupRow_\(group.title)")
+                ForEach(profile.groups) { group in
+                    NavigationLink(value: group) {
+                        Label(group.title, systemImage: group.symbolName)
                     }
-                
+                    .accessibilityIdentifier("groupRow_\(group.title)")
+                }
             }
             .navigationTitle(profile.name)
             .listStyle(.sidebar)

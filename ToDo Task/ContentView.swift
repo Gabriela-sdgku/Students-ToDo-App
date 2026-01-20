@@ -8,7 +8,6 @@
 import SwiftUI
 
 struct ContentView: View {
-
     @State private var profiles: [Profile] = []
     @Environment(\.scenePhase) private var scenePhase
     @AppStorage("isDarkMode") private var isDarkMode = false
@@ -32,8 +31,6 @@ struct ContentView: View {
 
                 ScrollView {
                     VStack(spacing: 40) {
-                        
-                        // 2. Header Section
                         VStack(spacing: 10) {
                             Text("Welcome Back")
                                 .font(.subheadline)
@@ -44,11 +41,10 @@ struct ContentView: View {
                             Text("Who is working today?")
                                 .font(.system(size: 28, weight: .bold, design: .rounded))
                                 .multilineTextAlignment(.center)
-                                .accessibilityIdentifier("whoisworking_text")
                         }
 
                         LazyVGrid(columns: columns, spacing: 25) {
-                            ForEach($profiles) { $profile in
+                            ForEach(profiles) { profile in
                                 NavigationLink(value: profile) {
                                     ProfileCardView(profile: profile)
                                 }
@@ -73,12 +69,7 @@ struct ContentView: View {
             loadData()
         }
         .onChange(of: scenePhase) { oldValue, newValue in
-            if newValue == .active {
-                print("🟢 App is Active")
-            } else if newValue == .inactive {
-                print("🟡 App is Inactive")
-            } else if newValue == .background {
-                print("🔴 App is Background - Saving Data!")
+            if newValue == .background {
                 saveData()
             }
         }
@@ -98,12 +89,10 @@ struct ContentView: View {
                 return
             }
         }
-        // show mock data for dev purposes
         profiles = Profile.sample
     }
 }
 
-// 4. Extracted Subview for cleaner code and better design
 struct ProfileCardView: View {
     let profile: Profile
     

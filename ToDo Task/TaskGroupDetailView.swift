@@ -30,6 +30,7 @@ struct TaskGroupDetailView: View {
                                 }
                             }
                             .accessibilityIdentifier("taskCompletionToggle_\(task.title)")
+                        
                         TextField("Task Title", text: $task.title)
                             .strikethrough(task.isCompleted)
                             .accessibilityIdentifier("taskTextField_\(task.title)")
