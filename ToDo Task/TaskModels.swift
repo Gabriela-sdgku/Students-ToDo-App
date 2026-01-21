@@ -11,6 +11,11 @@ struct TaskItem: Identifiable, Hashable, Codable {
     var id = UUID()
     var title: String
     var isCompleted: Bool = false
+    var dueDate: Date?
+    var isOverdue: Bool {
+        guard let dueDate = dueDate, !isCompleted else {return false}
+        return dueDate < Date()
+    }
 }
 
 struct TaskGroup: Identifiable, Hashable, Codable {

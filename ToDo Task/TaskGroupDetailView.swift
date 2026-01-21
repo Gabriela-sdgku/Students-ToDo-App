@@ -33,7 +33,18 @@ struct TaskGroupDetailView: View {
                         
                         TextField("Task Title", text: $task.title)
                             .strikethrough(task.isCompleted)
+                            .foregroundColor(task.isOverdue && !task.isCompleted ? .red : .primary)
                             .accessibilityIdentifier("taskTextField_\(task.title)")
+                        
+                        DatePicker("", selection:Binding (
+                            get: {task.dueDate ?? Date()},
+                            set: {task.dueDate = $0}
+                        ), displayedComponents: .date)
+                        .labelsHidden()
+                        .frame(width: 100)
+                        .tint(task.isOverdue ? .red : .accentColor)
+                        .background(task.isOverdue ? Color.red.opacity(0.1) : Color.clear)
+                        .cornerRadius(4)
                     }
                 }
                 .onDelete { index in

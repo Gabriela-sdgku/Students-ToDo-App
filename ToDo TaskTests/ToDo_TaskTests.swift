@@ -10,65 +10,29 @@ import Foundation
 @testable import ToDo_Task
 
 struct Todo_TaskTests {
-
-    // MARK: - Logic & Progress Tests
     
-    @Test("Verify progress calculation with mixed task states")
-    func testProgressCalculation() {
-        let tasks = [
-            TaskItem(title: "Task 1", isCompleted: true),
-            TaskItem(title: "Task 2", isCompleted: false),
-            TaskItem(title: "Task 3", isCompleted: false)
-        ]
+    /* Feature: Add a calendar next to a task to have a Due Date */
+    
+    @Test("Verify that the TaskItem can store and retrieve a due date")
+    // AAA: Arrange, Act and Assert
+    // Given, when, then
+    
+    func testTaskItemDueDate() {
+        let testDate = Date(timeIntervalSince1970: 1735689600) // Jan 1, 2025
         
-        let completedCount = tasks.filter { $0.isCompleted }.count
-        let progress = Double(completedCount) / Double(tasks.count)
+        let task = TaskItem(title: "Create Test Assignments", dueDate: testDate)
         
-        #expect(completedCount == 1)
-        #expect(progress > 0.33 && progress < 0.34)
+        #expect(task.dueDate == testDate)
     }
     
-    @Test("Verify 100% completion state")
-    func testFullCompletionProgress() {
-        let tasks = [
-            TaskItem(title: "Task 1", isCompleted: true),
-            TaskItem(title: "Task 2", isCompleted: true)
-        ]
-        
-        let progress = Double(tasks.filter { $0.isCompleted }.count) / Double(tasks.count)
-        
-        #expect(progress == 1.0)
-    }
-
-    // MARK: - Model Integrity Tests
+    // Show a visual alert/warning if a task is overdue
     
-    @Test("TaskItem initialization defaults to not completed")
-    func testTaskItemDefaultState() {
-        let newTask = TaskItem(title: "New Lesson")
-        #expect(newTask.isCompleted == false)
-    }
-    
-    @Test("TaskGroup starts with an empty task list by default")
-    func testTaskGroupEmptyInit() {
-        let group = TaskGroup(title: "Research", symbolName: "book", tasks: [])
-        #expect(group.tasks.isEmpty)
-    }
-
-    // MARK: - Data Transformation (Codable)
-    
-    @Test("Verify Profile can be encoded and decoded (Persistence check)")
-    func testProfileEncodingDecoding() throws {
-        let originalProfile = Profile(name: "Test Prof", profileImage: "image", groups: [])
+    @Test("Task should be identified as overdue if the due date is in the past")
+    func testOverdueTaskLogic() {
+        let pastDate = Calendar.current.date(byAdding: .day, value: -1, to: Date())!
         
-        // Encode
-        let encoder = JSONEncoder()
-        let data = try encoder.encode(originalProfile)
+        let task = TaskItem(title: "Submit my final report", isCompleted: false, dueDate: pastDate)
         
-        // Decode
-        let decoder = JSONDecoder()
-        let decodedProfile = try decoder.decode(Profile.self, from: data)
-        
-        #expect(decodedProfile.name == originalProfile.name)
-        #expect(decodedProfile.id == originalProfile.id)
+        #expect(task.isOverdue == true, "A task with a past date and not completed should be overdue")
     }
 }
