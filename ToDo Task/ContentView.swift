@@ -15,25 +15,27 @@ struct ContentView: View {
     @Environment(\.scenePhase) private var scenePhase
     @AppStorage("isDarkMode") private var isDarkMode = false
     let saveKey = "savedTaskGroups"
+    @Environment(\.dismiss) private var dismiss
+    @Binding var profile: Profile
     
     var body: some View {
         NavigationSplitView(columnVisibility: $columnVisibility) {
             // SIDEBAR
             List(selection: $selectedGroup) {
-                ForEach(taskGroups) {group in
+                ForEach(profile.groups) {group in
                     NavigationLink(value: group) {
                         Label(group.title, systemImage: group.symbolName)
                     }
                 }
             }
-            .navigationTitle("ToDo APP")
+            .navigationTitle(profile.name)
             .listStyle(.sidebar)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     Button {
-                        isDarkMode.toggle()
+                        dismiss()
                     } label: {
-                        Image(systemName: isDarkMode ? "sun.max.fill" : "moon.fill")
+                        Image(systemName:"chevron.left")
                     }
                 }
                 
@@ -47,16 +49,18 @@ struct ContentView: View {
             }
         } detail: {
             if let group = selectedGroup {
-                if let index = taskGroups.firstIndex(where: { $0.id == group.id }) {
-                    TaskGroupDetailView(groups: $taskGroups[index])
+                if let index = profile.groups.firstIndex(where: { $0.id == group.id }) {
+                    TaskGroupDetailView(groups: $profile.groups[index])
                 }
             } else {
                 ContentUnavailableView("Select a Group", systemImage: "sidebar.left")
             }
         }
+        .navigationSplitViewStyle(.balanced)
+        .navigationBarBackButtonHidden(true)
         .sheet(isPresented: $isShowingAddGroup) {
             NewGroupView { newGroup in
-                taskGroups.append(newGroup)
+                profile.groups.append(newGroup)
             }
         }
         .onAppear {
@@ -77,7 +81,7 @@ struct ContentView: View {
     }
     
     func saveData() {
-        if let encodedData = try? JSONEncoder().encode(taskGroups){
+        if let encodedData = try? JSONEncoder().encode(profile.groups){
             UserDefaults.standard.set(encodedData, forKey: saveKey)
         }
     }
@@ -85,11 +89,13 @@ struct ContentView: View {
     func loadData() {
         if let savedData = UserDefaults.standard.data(forKey: saveKey){
             if let decodedGrpups = try? JSONDecoder().decode([TaskGroup].self, from: savedData) {
-                taskGroups = decodedGrpups
+                profile.groups = decodedGrpups
                 return
             }
         }
         // show mock data for dev purposes
-        taskGroups = TaskGroup.sampleData
+        if profile.groups.isEmpty {
+            profile.groups = TaskGroup.sampleData
+        }
     }
 }
