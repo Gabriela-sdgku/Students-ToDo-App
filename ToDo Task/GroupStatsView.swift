@@ -25,10 +25,10 @@ struct GroupStatsView: View {
                     .stroke(style: StrokeStyle(lineWidth: 10, lineCap: .round))
                     .foregroundColor(.cyan)
                     .rotationEffect(.degrees(-90))
-                
                 Text("\(Int(progress * 100))%")
                     .font(.caption)
                     .bold()
+                    .accessibilityIdentifier("ProgressPercentageText")
             }
             .frame(width: 60, height: 60)
             .padding()
@@ -37,10 +37,12 @@ struct GroupStatsView: View {
                 Text("Task Progress")
                     .font(.headline)
                 Text("\(completedCount) / \(tasks.count) Completed")
+                    .accessibilityIdentifier("ProgressCountLabel")
             }
             Spacer()
         }
         .padding()
         .background(Color(.secondarySystemBackground))
+        .accessibilityIdentifier("GroupStatsContainer")
     }
 }

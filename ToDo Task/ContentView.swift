@@ -20,12 +20,12 @@ struct ContentView: View {
     
     var body: some View {
         NavigationSplitView(columnVisibility: $columnVisibility) {
-            // SIDEBAR
             List(selection: $selectedGroup) {
-                ForEach(profile.groups) {group in
+                ForEach(profile.groups) { group in
                     NavigationLink(value: group) {
                         Label(group.title, systemImage: group.symbolName)
                     }
+                    .accessibilityIdentifier("GroupLink_\(group.title)") // ID for each group
                 }
             }
             .navigationTitle(profile.name)
@@ -37,6 +37,7 @@ struct ContentView: View {
                     } label: {
                         Image(systemName:"chevron.left")
                     }
+                    .accessibilityIdentifier("BackButton")
                 }
                 
                 ToolbarItem(placement: .primaryAction) {
@@ -45,6 +46,7 @@ struct ContentView: View {
                     } label: {
                         Image(systemName: "plus")
                     }
+                    .accessibilityIdentifier("AddGroupButton")
                 }
             }
         } detail: {

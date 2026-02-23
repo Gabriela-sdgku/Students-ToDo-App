@@ -24,21 +24,24 @@ struct DashboardView: View {
             ScrollView {
                 VStack(spacing: 40) {
                     VStack {
-                        Text("Welcom to ToDo App")
+                        Text("Welcome to ToDo App")
                             .font(.subheadline)
                             .textCase(.uppercase)
                             .foregroundColor(.secondary)
                             .padding(.top, 40)
+                            .accessibilityIdentifier("Welcome_text")
                         
                         Text("Who is working today?")
                             .font(.system(size: 28, weight: .bold, design: .rounded))
+                            .accessibilityIdentifier("Welcome_text_subtitle")
                     }
                     LazyVGrid(columns: columns, spacing: 25) {
-                        ForEach($profiles) {$profile in
-                            NavigationLink(value: profile){
+                        ForEach($profiles) { $profile in
+                            NavigationLink(value: profile) {
                                 ProfileCardView(profile: profile)
                             }
                             .buttonStyle(PlainButtonStyle())
+                            .accessibilityIdentifier("ProfileCard_\(profile.name)")
                         }
                     }
                     .padding(.horizontal)
@@ -46,12 +49,13 @@ struct DashboardView: View {
             }
             .navigationTitle("Home")
             .toolbar{
-                ToolbarItem(placement: .topBarTrailing){
+                ToolbarItem(placement: .topBarTrailing) {
                     Button {
                         isDarkMode.toggle()
                     } label: {
                         Image(systemName: isDarkMode ? "sun.max.fill" : "moon.fill")
                     }
+                    .accessibilityIdentifier("DarkModeToggle")
                 }
             }
             .navigationDestination(for: Profile.self) { selectedProfile in
