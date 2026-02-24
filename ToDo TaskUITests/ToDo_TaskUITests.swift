@@ -62,4 +62,47 @@ final class ToDo_TaskUITests: XCTestCase {
         
         XCTAssertTrue(app.buttons["GroupLink_Testing Group"].exists)
     }
+    
+    func testNavigationToTaskGroup() {
+        let app = XCUIApplication()
+        app.launch()
+        
+        let professorCard = app.buttons["ProfileCard_Professor"]
+        XCTAssertTrue(professorCard.exists, "The Professor card should be visible")
+        professorCard.tap()
+        
+        let groceriesGroup = app.buttons["GroupLink_Groceries"]
+        XCTAssertTrue(groceriesGroup.waitForExistence(timeout: 2), "The groceroes group should be visible")
+        groceriesGroup.tap()
+        
+        let detailTitle = app.navigationBars["Groceries"]
+        XCTAssertTrue(detailTitle.exists, "The navigation bar title should display the name of the group")
+    }
+    
+    func testTaskLifecycle_AddCompleteDelete() {
+        let app = XCUIApplication()
+        app.launch()
+
+        app.buttons["ProfileCard_Professor"].tap()
+        app.buttons["GroupLink_Home"].tap()
+
+        let addTaskButton = app.buttons["AddTaskButton"]
+        XCTAssertTrue(addTaskButton.exists)
+        addTaskButton.tap()
+
+        let allTextFields = app.textFields
+        let lastTaskField = allTextFields.element(boundBy: allTextFields.count - 1)
+        lastTaskField.tap()
+        lastTaskField.typeText("Grade Midterms")
+        app.keyboards.buttons["Return"].tap()
+
+
+        lastTaskField.swipeLeft()
+        app.buttons["Delete"].tap()
+
+
+        let expectation = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: lastTaskField)
+        let result = XCTWaiter().wait(for: [expectation], timeout: 3)
+        XCTAssertEqual(result, .completed, "The task should be removed from the list after deletion.")
+    }
 }
