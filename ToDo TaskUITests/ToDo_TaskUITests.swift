@@ -105,4 +105,16 @@ final class ToDo_TaskUITests: XCTestCase {
         let result = XCTWaiter().wait(for: [expectation], timeout: 3)
         XCTAssertEqual(result, .completed, "The task should be removed from the list after deletion.")
     }
+    
+    func testTaskHasDateVisible() {
+        let app = XCUIApplication()
+        app.launch()
+        
+        app.buttons["ProfileCard_Professor"].tap()
+        app.buttons["GroupLink_Groceries"].tap()
+        
+        let dateDisplay = app.staticTexts["TaskDateLabel"]
+        
+        XCTAssertTrue(dateDisplay.exists, "The task date should be displayed.")
+    }
 }

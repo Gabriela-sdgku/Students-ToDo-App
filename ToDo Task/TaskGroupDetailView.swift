@@ -34,6 +34,20 @@ struct TaskGroupDetailView: View {
                         TextField("Task Title", text: $task.title)
                             .strikethrough(task.isCompleted)
                             .accessibilityIdentifier("TaskTextField_\(task.id)")
+                        
+                        
+                        VStack {
+                            DatePicker("Goal Date", selection: $task.dueDate, displayedComponents: .date)
+                                .labelsHidden()
+                                .scaleEffect(0.9)
+                                .accessibilityIdentifier("TaskDatePicker")
+                            
+                            Text("Due: \(task.dueDate.formatted(date: .abbreviated, time: .omitted))")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                                .accessibilityIdentifier("TaskDateLabel")
+                        }
+                        .padding(.leading, 12)
                     }
                 }
                 .onDelete { index in
