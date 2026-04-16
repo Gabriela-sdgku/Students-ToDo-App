@@ -10,29 +10,24 @@ import Foundation
 @testable import ToDo_Task
 
 struct Todo_TaskTests {
+    /*
+     AAA: Arrange, Act and Assert
+     Given, When , Then
+     */
     
-    /* Feature: Add a calendar next to a task to have a Due Date */
+    // Test: verify that a task is showing a Due Date
     
-    @Test("Verify that the TaskItem can store and retrieve a due date")
-    // AAA: Arrange, Act and Assert
-    // Given, when, then
-    
-    func testTaskItemDueDate() {
-        let testDate = Date(timeIntervalSince1970: 1735689600) // Jan 1, 2025
-        
-        let task = TaskItem(title: "Create Test Assignments", dueDate: testDate)
-        
+    @Test("Verify that the TaskItem can store and retrieve a Due Date")
+    func testTaskHasDueDate() {
+        let testDate = Date(timeIntervalSince1970: 1776220044) // april 14 2026
+        let task = TaskItem(title: "Create Test", isCompleted: false, dueDate: testDate)
         #expect(task.dueDate == testDate)
     }
     
-    // Show a visual alert/warning if a task is overdue
-    
     @Test("Task should be identified as overdue if the due date is in the past")
-    func testOverdueTaskLogic() {
+    func testOverdueTask() {
         let pastDate = Calendar.current.date(byAdding: .day, value: -1, to: Date())!
-        
-        let task = TaskItem(title: "Submit my final report", isCompleted: false, dueDate: pastDate)
-        
-        #expect(task.isOverdue == true, "A task with a past date and not completed should be overdue")
+        let task = TaskItem(title: "Create Test Overdue", isCompleted: false, dueDate: pastDate)
+        #expect(task.isOverdue == true, "A task with a past date and not completde should be overdue")
     }
 }
