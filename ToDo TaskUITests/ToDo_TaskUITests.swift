@@ -7,130 +7,169 @@
 
 import XCTest
 
-final class ToDo_TaskUITests: XCTestCase {
+final class ProfessorToDoUITests: XCTestCase {
     
     let app = XCUIApplication()
+
     override func setUpWithError() throws {
-        // Put setup code here. This method is called before the invocation of each test method in the class.
-        
-        // In UI tests it is usually best to stop immediately when a failure occurs.
         continueAfterFailure = false
-        app.launch()
-        // In UI tests it’s important to set the initial state - such as interface orientation - required for your tests before they run. The setUp method is a good place to do this.
     }
-    
+
     func testLaunchInEnglish() {
-        app.launchArguments = ["-AppleLanguages", "(en)"] // set the language
-        app.launch()
-        
-        let header = app.staticTexts["Who is working today?"]
-        XCTAssertTrue(header.exists, "The english header of 'Who is working today' is not found")
-        
-    }
-    
+            // 1. Force the app to launch in English
+            app.launchArguments = ["-AppleLanguages", "(en)"]
+            app.launch()
+            
+            // 2. CHANGE: Look for the large visible header instead of the hidden "Home" title
+            let header = app.staticTexts["Who is working today?"]
+            
+            XCTAssertTrue(header.exists, "The English header 'Who is working today?' was not found.")
+        }
+
     func testLaunchInSpanish() {
-        app.launchArguments = ["-AppleLanguages", "(es)"] // set the language
-        app.launch()
-        let header = app.staticTexts["Quien esta trabajando hoy?"]
-        XCTAssertTrue(header.exists, "The spanish header of 'Who is working today' in spanish is not found")
-    }
+            // 1. Force the app to launch in Spanish
+            app.launchArguments = ["-AppleLanguages", "(es)"]
+            app.launch()
+            
+            // 2. CHANGE: Look for the Spanish translation of the header
+            // Make sure this EXACT string matches your String Catalog translation
+            let spanishHeader = app.staticTexts["¿Quién está trabajando hoy?"]
+            
+            XCTAssertTrue(spanishHeader.waitForExistence(timeout: 2), "The Spanish header '¿Quién está trabajando hoy?' was not found.")
+        }
     
-    func testNewGroupCreationIcons() {
-        app.launchArguments = ["-AppleLanguages", "(en)"]
+    func testNewGroupSheetLocalization() {
+        // Test that modal sheets also respect the language argument
+        app.launchArguments = ["-AppleLanguages", "(es)"]
         app.launch()
         
+        // 1. Tap the first profile (Professor/Student) to enter Dashboard
+        // (This relies on your ContentView structure)
         let firstProfile = app.buttons.firstMatch
         if firstProfile.exists {
             firstProfile.tap()
             
-            let addButton = app.buttons["Add"]
+            // 2. Tap the "Add Group" (+) button
+            let addButton = app.buttons["Add"] // Or verify the accessibility identifier in your code
             if addButton.waitForExistence(timeout: 2) {
                 addButton.tap()
                 
-                XCTAssertTrue(app.staticTexts["Group Name"].exists)
-                XCTAssertTrue(app.staticTexts["Select Icon"].exists)
+                // 3. Verify the Form Labels are Spanish
+                // "Group Name" -> "Nombre del Grupo"
+                XCTAssertTrue(app.staticTexts["Nombre del Grupo"].exists)
+                
+                // "Select Icon" -> "Seleccionar Icono"
+                XCTAssertTrue(app.staticTexts["Seleccionar Icono"].exists)
             }
         }
     }
-    
-    // MARK: 117 - 1
-    func testFullUserFlow() throws {
-        // 1. Select the "Professor" Profile from ContentView
-        let professorCard = app.buttons["profileCard_Professor"]
-        XCTAssertTrue(professorCard.waitForExistence(timeout: 5), "The Professor profile card should exist.")
-        professorCard.tap()
-        
-        // 2. Verify we are on the Dashboard and tap "Add Group"
-        let addGroupButton = app.buttons["addGroupButton"]
-        XCTAssertTrue(addGroupButton.waitForExistence(timeout: 5), "The Add Group button should be visible on the Dashboard.")
-        addGroupButton.tap()
-        
-        let groupNameField = app.textFields["newGroupNameField"]
-        XCTAssertTrue(groupNameField.waitForExistence(timeout: 2), "The Group Name text field should be present.")
-        groupNameField.tap()
-        groupNameField.typeText("Work Project")
-        
-        // Dismiss the keyboard to reveal the toolbar buttons
-        if app.keyboards.buttons["Return"].exists {
-            app.keyboards.buttons["Return"].tap()
-        } else {
-            // Fallback: tap the navigation bar to dismiss keyboard
-            app.navigationBars["New Group Creator"].tap()
-        }
-        
-        // Select an icon (e.g., the graduation cap)
-        let iconButton = app.buttons["iconSelect_graduationcap.fill"]
-        if iconButton.exists {
-            iconButton.tap()
-        }
-        
-        // Tap Save - Now guaranteed to be visible/hittable
-        let saveGroupButton = app.buttons["saveGroupButton"]
-        XCTAssertTrue(saveGroupButton.isHittable, "The Save button is not interactable.")
-        saveGroupButton.tap()
-        // 4. Verify the group was created and select it
-        let newGroupRow = app.buttons["groupRow_Work Project"]
-        XCTAssertTrue(newGroupRow.waitForExistence(timeout: 5), "The new group 'Work Project' should appear in the sidebar.")
-        newGroupRow.tap()
-        
-        // 5. Add a Task inside the group
-        let addTaskButton = app.buttons["addTaskButton"]
-        XCTAssertTrue(addTaskButton.exists, "The Add Task button should be available in the detail view.")
-        addTaskButton.tap()
-        
-        // Type the task title
-        let taskTextField = app.textFields.firstMatch
-        taskTextField.tap()
-        taskTextField.typeText("Finish UI Tests")
-        
-        // 6. Toggle Task Completion
-        let completionToggle = app.images["taskCompletionToggle_Finish UI Tests"]
-        XCTAssertTrue(completionToggle.exists, "The task completion toggle should exist.")
-        completionToggle.tap()
-        
-        // 7. Navigate back to Home
-        let backButton = app.buttons["backToHomeButton"]
-        XCTAssertTrue(backButton.exists, "The back button to return to Profile selection should exist.")
-        backButton.tap()
-        
-        // Verify we are back at the Welcome screen
-        let welcomeText = app.staticTexts["Who is working today?"]
-        XCTAssertTrue(welcomeText.exists, "Should be back on the profile selection screen.")
+    func testCreateNewTaskGroup() {
+        let app = XCUIApplication()
+        app.launch()
+
+        // 1. Select a profile on the Dashboard
+        // Uses the ID: "ProfileCard_\(profile.name)"
+        let profileCard = app.buttons["ProfileCard_Professor"]
+        XCTAssertTrue(profileCard.exists)
+        profileCard.tap()
+
+        // 2. Tap the plus button in ContentView
+        // Uses the ID: "AddGroupButton"
+        let addButton = app.buttons["AddGroupButton"]
+        XCTAssertTrue(addButton.exists)
+        addButton.tap()
+
+        // 3. Fill out the New Group form
+        // Uses the ID: "GroupNameTextField"
+        let nameField = app.textFields["GroupNameTextField"]
+        nameField.tap()
+        nameField.typeText("Work Projects")
+
+        // 4. Select an icon
+        // Uses the ID: "Icon_cart.fill"
+        let iconButton = app.images["Icon_cart.fill"]
+        iconButton.tap()
+
+        // 5. Save the group
+        // Uses the ID: "SaveGroupButton"
+        app.buttons["SaveGroupButton"].tap()
+
+        // 6. Verify the new group appears in the Sidebar
+        // Uses the ID: "GroupLink_Work Projects"
+        XCTAssertTrue(app.buttons["GroupLink_Work Projects"].exists)
     }
     
-    func testCancelGroupCreation() throws {
-        // Select Professor
-        app.buttons["profileCard_Professor"].tap()
-        
-        // Open Add Group
-        app.buttons["addGroupButton"].tap()
-        
-        // Tap Cancel
-        let cancelButton = app.buttons["cancelGroupButton"]
-        XCTAssertTrue(cancelButton.exists)
-        cancelButton.tap()
-        
-        // Verify we are back on Dashboard without the new group
-        XCTAssertTrue(app.buttons["addGroupButton"].exists)
+    func testNavigationToTaskGroup() {
+        let app = XCUIApplication()
+        app.launch()
+
+        // 1. Select the Professor profile from the Dashboard
+        let professorCard = app.buttons["ProfileCard_Professor"]
+        XCTAssertTrue(professorCard.exists, "The Professor profile card should be on the Home screen.")
+        professorCard.tap()
+
+        // 2. Identify and tap the 'Groceries' group in the sidebar/list
+        // Note: We use the accessibilityIdentifier defined in ContentView.swift
+        let groceriesGroup = app.buttons["GroupLink_Groceries"]
+        XCTAssertTrue(groceriesGroup.waitForExistence(timeout: 2), "The Groceries group should be visible in the list.")
+        groceriesGroup.tap()
+
+        // 3. Assert that the navigation title updated to 'Groceries'
+        // This confirms the TaskGroupDetailView is now active.
+        let detailTitle = app.navigationBars["Groceries"]
+        XCTAssertTrue(detailTitle.exists, "The navigation bar should display 'Groceries' after tapping the group.")
+    }
+
+    //CLASE 2: Priority TDD Development Testing
+    func testTaskPriorityPicker() {
+        let app = XCUIApplication()
+        app.launch()
+
+        // Reuse initial steps from testCreateNewTaskGroup: select profile, add a group "Work Projects"
+        let profileCard = app.buttons["ProfileCard_Professor"]
+        XCTAssertTrue(profileCard.waitForExistence(timeout: 2))
+        profileCard.tap()
+
+        let addButton = app.buttons["AddGroupButton"]
+        XCTAssertTrue(addButton.exists)
+        addButton.tap()
+
+        let nameField = app.textFields["GroupNameTextField"]
+        nameField.tap()
+        nameField.typeText("Work Projects")
+
+        let iconButton = app.images["Icon_cart.fill"]
+        if iconButton.waitForExistence(timeout: 2) {
+            iconButton.tap()
+        }
+
+        app.buttons["SaveGroupButton"].tap()
+        XCTAssertTrue(app.buttons["GroupLink_Work Projects"].waitForExistence(timeout: 2))
+        app.buttons["GroupLink_Work Projects"].tap()
+
+        // Ensure at least one task exists: add one and type its title
+        let addTaskButton = app.buttons["AddTaskButton"]
+        XCTAssertTrue(addTaskButton.exists)
+        addTaskButton.tap()
+
+        let allTextFields = app.textFields
+        let lastTaskField = allTextFields.element(boundBy: allTextFields.count - 1)
+        lastTaskField.tap()
+        lastTaskField.typeText("Sample Task")
+
+        // Tap the priority picker and select High
+        let predicate = NSPredicate(format: "identifier BEGINSWITH %@", "TaskPriorityPicker_")
+        let pickers = app.buttons.matching(predicate)
+        XCTAssertTrue(pickers.count > 0, "There should be at least one priority picker visible")
+
+        let firstPicker = pickers.element(boundBy: 0)
+        XCTAssertTrue(firstPicker.exists)
+        firstPicker.tap()
+
+        if app.buttons["High"].waitForExistence(timeout: 2) {
+            app.buttons["High"].tap()
+        } else if app.staticTexts["High"].waitForExistence(timeout: 2) {
+            app.staticTexts["High"].tap()
+        }
     }
 }

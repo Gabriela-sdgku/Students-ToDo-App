@@ -9,55 +9,89 @@ import SwiftUI
 
 struct DashboardView: View {
     
-    @Binding var profile: Profile
-    @State private var selectedGroup: TaskGroup?
-    @State private var columnVisibility: NavigationSplitViewVisibility = .all
-    @State private var isShowingAddGroup = false
-    @Environment(\.dismiss) var dismiss
+    @State private var profiles: [Profile] = Profile.sample
+    @AppStorage("isDarkMode") private var isDarkMode: Bool = false
+    @State private var path = NavigationPath()
+    
+    let columns = [
+        GridItem(.flexible(), spacing: 20),
+        GridItem(.flexible(), spacing: 20),
+    ]
     
     var body: some View {
-        NavigationSplitView(columnVisibility: $columnVisibility) {
-            List(selection: $selectedGroup) {
-                ForEach(profile.groups) { group in
-                    NavigationLink(value: group) {
-                        Label(group.title, systemImage: group.symbolName)
+        NavigationStack(path: $path) {
+            ScrollView {
+                VStack(spacing: 40) {
+                    VStack {
+                        Text("Welcome to ToDo App")
+                            .font(.subheadline)
+                            .textCase(.uppercase)
+                            .foregroundColor(.secondary)
+                            .padding(.top, 40)
+                            .accessibilityIdentifier("Welcome_text")
+                        
+                        Text("Who is working today?")
+                            .font(.system(size: 28, weight: .bold, design: .rounded))
+                            .accessibilityIdentifier("Welcome_text_subtitle")
                     }
-                    .accessibilityIdentifier("groupRow_\(group.title)")
-                }
-            }
-            .navigationTitle(profile.name)
-            .listStyle(.sidebar)
-            .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    Button {
-                        dismiss()
-                    } label : {
-                        HStack {
-                            Image(systemName: "chevron.left")
-                            Text("Home")
+                    LazyVGrid(columns: columns, spacing: 25) {
+                        ForEach($profiles) { $profile in
+                            NavigationLink(value: profile) {
+                                ProfileCardView(profile: profile)
+                            }
+                            .buttonStyle(PlainButtonStyle())
+                            .accessibilityIdentifier("ProfileCard_\(profile.name)")
                         }
                     }
-                    .accessibilityIdentifier("backToHomeButton")
+                    .padding(.horizontal)
                 }
-                ToolbarItem(placement: .primaryAction) {
-                    Button { isShowingAddGroup = true } label : {
-                        Image(systemName: "plus")
+            }
+            .navigationTitle("Home")
+            .toolbar{
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        isDarkMode.toggle()
+                    } label: {
+                        Image(systemName: isDarkMode ? "sun.max.fill" : "moon.fill")
                     }
-                    .accessibilityIdentifier("addGroupButton")
+                    .accessibilityIdentifier("DarkModeToggle")
                 }
             }
-        } detail: {
-            if let group = selectedGroup {
-                if let index = profile.groups.firstIndex(where: { $0.id == group.id}) {
-                    TaskGroupDetailView(groups: $profile.groups[index])
+            .navigationDestination(for: Profile.self) { selectedProfile in
+                if let index = profiles.firstIndex(where: {$0.id == selectedProfile.id}){
+                    ContentView(profile: $profiles[index])
                 }
-            } else {
-                ContentUnavailableView("Select a Group", systemImage: "sidebar.left")
+                
             }
         }
-        .sheet(isPresented: $isShowingAddGroup) {
-            NewGroupView { newGroup in
-                profile.groups.append(newGroup)}
+        .preferredColorScheme(isDarkMode ? .dark : .light)
+    }
+}
+
+struct ProfileCardView: View {
+    let profile: Profile
+    
+    var body: some View {
+        VStack(spacing: 15){
+            ZStack {
+                Image(profile.profileImage)
+                    .resizable()
+                    .scaledToFit()
+                    .clipShape(RoundedRectangle(cornerRadius: 22))
+            }
+            .frame(width: 120, height: 120)
+            Text(profile.name)
+                .font(.headline)
+                .fontWeight(.bold)
+                .foregroundColor(.cyan)
+            
         }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 25)
+        .background(
+            RoundedRectangle(cornerRadius: 25)
+                .fill(Color(UIColor.secondarySystemGroupedBackground))
+                .shadow(color: Color.black.opacity(0.1), radius: 15, x: 0, y:10)
+        )
     }
 }

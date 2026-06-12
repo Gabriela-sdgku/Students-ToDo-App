@@ -8,116 +8,96 @@
 import SwiftUI
 
 struct ContentView: View {
-    @State private var profiles: [Profile] = []
+    @State private var taskGroups: [TaskGroup] = []
+    @State private var selectedGroup: TaskGroup? // selected group
+    @State private var columnVisibility: NavigationSplitViewVisibility = .all // navigation side panel
+    @State private var isShowingAddGroup = false
     @Environment(\.scenePhase) private var scenePhase
     @AppStorage("isDarkMode") private var isDarkMode = false
-    let saveKey = "savedProfiles"
-    @State private var path = NavigationPath()
-    
-    let columns = [
-        GridItem(.flexible(), spacing: 20),
-        GridItem(.flexible(), spacing: 20)
-    ]
+    let saveKey = "savedTaskGroups"
+    @Environment(\.dismiss) private var dismiss
+    @Binding var profile: Profile
     
     var body: some View {
-        NavigationStack(path: $path) {
-            ZStack {
-                LinearGradient(
-                    gradient: Gradient(colors: [Color.blue.opacity(0.1), Color.purple.opacity(0.05)]),
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
-                .ignoresSafeArea()
-
-                ScrollView {
-                    VStack(spacing: 40) {
-                        VStack(spacing: 10) {
-                            Text("Welcome Back")
-                                .font(.subheadline)
-                                .textCase(.uppercase)
-                                .foregroundColor(.secondary)
-                                .padding(.top, 40)
-                            
-                            Text("Who is working today?")
-                                .font(.system(size: 28, weight: .bold, design: .rounded))
-                                .multilineTextAlignment(.center)
-                        }
-
-                        LazyVGrid(columns: columns, spacing: 25) {
-                            ForEach(profiles) { profile in
-                                NavigationLink(value: profile) {
-                                    ProfileCardView(profile: profile)
-                                }
-                                .buttonStyle(PlainButtonStyle())
-                                .accessibilityIdentifier("profileCard_\(profile.name)")
-                            }
-                        }
-                        .padding(.horizontal)
+        NavigationSplitView(columnVisibility: $columnVisibility) {
+            List(selection: $selectedGroup) {
+                ForEach(profile.groups) { group in
+                    NavigationLink(value: group) {
+                        Label(group.title, systemImage: group.symbolName)
                     }
+                    .accessibilityIdentifier("GroupLink_\(group.title)") // ID for each group
                 }
             }
-            .navigationTitle("Home")
-            .navigationBarHidden(true)
-            .navigationDestination(for: Profile.self) { selectedProfile in
-                if let index = profiles.firstIndex(where: {$0.id == selectedProfile.id}) {
-                    DashboardView(profile: $profiles[index])
-                        .navigationBarBackButtonHidden(true)
+            .navigationTitle(profile.name)
+            .listStyle(.sidebar)
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button {
+                        dismiss()
+                    } label: {
+                        Image(systemName:"chevron.left")
+                    }
+                    .accessibilityIdentifier("BackButton")
                 }
+                
+                ToolbarItem(placement: .primaryAction) {
+                    Button {
+                        isShowingAddGroup = true
+                    } label: {
+                        Image(systemName: "plus")
+                    }
+                    .accessibilityIdentifier("AddGroupButton")
+                }
+            }
+        } detail: {
+            if let group = selectedGroup {
+                if let index = profile.groups.firstIndex(where: { $0.id == group.id }) {
+                    TaskGroupDetailView(groups: $profile.groups[index])
+                }
+            } else {
+                ContentUnavailableView("Select a Group", systemImage: "sidebar.left")
+            }
+        }
+        .navigationSplitViewStyle(.balanced)
+        .navigationBarBackButtonHidden(true)
+        .sheet(isPresented: $isShowingAddGroup) {
+            NewGroupView { newGroup in
+                profile.groups.append(newGroup)
             }
         }
         .onAppear {
             loadData()
         }
         .onChange(of: scenePhase) { oldValue, newValue in
-            if newValue == .background {
+            if newValue == .active {
+                print("🟢 App is Active")
+            } else if newValue == .inactive {
+                print("🟡 App is Inactive")
+            } else if newValue == .background {
+                print("🔴 App is Background - Saving Data!")
                 saveData()
             }
         }
         .preferredColorScheme(isDarkMode ? .dark : .light)
+
     }
     
     func saveData() {
-        if let encodedData = try? JSONEncoder().encode(profiles){
+        if let encodedData = try? JSONEncoder().encode(profile.groups){
             UserDefaults.standard.set(encodedData, forKey: saveKey)
         }
     }
     
     func loadData() {
         if let savedData = UserDefaults.standard.data(forKey: saveKey){
-            if let decodedProfiles = try? JSONDecoder().decode([Profile].self, from: savedData) {
-                profiles = decodedProfiles
+            if let decodedGrpups = try? JSONDecoder().decode([TaskGroup].self, from: savedData) {
+                profile.groups = decodedGrpups
                 return
             }
         }
-        profiles = Profile.sample
-    }
-}
-
-struct ProfileCardView: View {
-    let profile: Profile
-    
-    var body: some View {
-        VStack(spacing: 15) {
-            Image(profile.profileImage)
-                .resizable()
-                .scaledToFit()
-                .frame(width: 90, height: 90)
-                .clipShape(Circle())
-                // Add a border ring to pop the image
-                .overlay(Circle().stroke(Color.accentColor.opacity(0.3), lineWidth: 3))
-                .shadow(radius: 5)
-            
-            Text(profile.name)
-                .font(.headline)
-                .fontWeight(.semibold)
-                .foregroundColor(.primary)
+        // show mock data for dev purposes
+        if profile.groups.isEmpty {
+            profile.groups = TaskGroup.sampleData
         }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 30)
-        .background(
-            RoundedRectangle(cornerRadius: 20)
-                .fill(Color(UIColor.secondarySystemGroupedBackground))
-                .shadow(color: Color.black.opacity(0.1), radius: 8, x: 0, y: 4)
-        )
     }
 }

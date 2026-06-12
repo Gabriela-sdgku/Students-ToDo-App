@@ -2,7 +2,7 @@
 //  TaskGroupDetailView.swift
 //  ToDo Task
 //
-//  Created SDGKU
+//  Created by SDGKU
 //
 
 import SwiftUI
@@ -21,31 +21,36 @@ struct TaskGroupDetailView: View {
                 }
                 
                 ForEach($groups.tasks) { $task in
-                    HStack {
-                        Image(systemName: task.isCompleted ? "checkmark.circle.fill" : "circle")
-                            .foregroundStyle(task.isCompleted ? .cyan : .gray)
-                            .onTapGesture {
-                                withAnimation {
-                                    task.isCompleted.toggle()
+                    VStack(alignment: .leading, spacing: 8) {
+                        // Top Row: Toggle, Title and Priority (picker on the right)
+                        HStack(alignment: .center) {
+                            Image(systemName: task.isCompleted ? "checkmark.circle.fill" : "circle")
+                                .foregroundStyle(task.isCompleted ? .cyan : .gray)
+                                .onTapGesture {
+                                    withAnimation {
+                                        task.isCompleted.toggle()
+                                    }
+                                }
+                                .accessibilityIdentifier("TaskToggle_\(task.id)")
+
+                            TextField("Task Title", text: $task.title)
+                                .strikethrough(task.isCompleted)
+                                .accessibilityIdentifier("TaskTextField_\(task.id)")
+
+                            Spacer()
+
+                            Picker("Priority", selection: $task.priority) {
+                                ForEach(Priority.allCases, id: \.self) { p in
+                                    Text(p.rawValue.capitalized).tag(p)
                                 }
                             }
-                            .accessibilityIdentifier("taskCompletionToggle_\(task.title)")
-                        
-                        TextField("Task Title", text: $task.title)
-                            .strikethrough(task.isCompleted)
-                            .foregroundColor(task.isOverdue && !task.isCompleted ? .red : .primary)
-                            .accessibilityIdentifier("taskTextField_\(task.title)")
-                        
-                        DatePicker("", selection:Binding (
-                            get: {task.dueDate ?? Date()},
-                            set: {task.dueDate = $0}
-                        ), displayedComponents: .date)
-                        .labelsHidden()
-                        .frame(width: 100)
-                        .tint(task.isOverdue ? .red : .accentColor)
-                        .background(task.isOverdue ? Color.red.opacity(0.1) : Color.clear)
-                        .cornerRadius(4)
+                            .pickerStyle(.menu)
+                            .labelsHidden()
+                            .accessibilityIdentifier("TaskPriorityPicker_\(task.id)")
+
+                        }
                     }
+                    .padding(.vertical, 4)
                 }
                 .onDelete { index in
                     groups.tasks.remove(atOffsets: index)
@@ -59,7 +64,8 @@ struct TaskGroupDetailView: View {
                     groups.tasks.append(TaskItem(title: ""))
                 }
             }
-            .accessibilityIdentifier("addTaskButton")
+            .accessibilityIdentifier("AddTaskButton")
         }
     }
 }
+
