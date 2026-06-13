@@ -138,11 +138,6 @@ final class ProfessorToDoUITests: XCTestCase {
         nameField.tap()
         nameField.typeText("Work Projects")
 
-        let iconButton = app.images["Icon_cart.fill"]
-        if iconButton.waitForExistence(timeout: 2) {
-            iconButton.tap()
-        }
-
         app.buttons["SaveGroupButton"].tap()
         XCTAssertTrue(app.buttons["GroupLink_Work Projects"].waitForExistence(timeout: 2))
         app.buttons["GroupLink_Work Projects"].tap()
